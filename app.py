@@ -11,15 +11,15 @@ app.secret_key = "chave-secreta-interclasse-2026"
 
 @app.route("/")
 def dashboard():
-    times = tabela_time.select_todos()
-    jogador = tabela_jogador.select_todos_jogador()
-    partida = tabela_partida.select_todas_partidas()
+    times = tabela_time.select_quantidade_total()
+    jogador = tabela_jogador.select_quantidade_total()
+    partida = tabela_partida.select_quantidade_total()
 
     return render_template(
         "dashboard.html",
-        total_jogadores=len(jogador),
-        total_times=len(times),
-        total_partidas=len(partida),
+        total_jogadores=(jogador),
+        total_times=(times),
+        total_partidas=(partida),
 
     )
 
@@ -53,10 +53,8 @@ def novo_jogador():
         if not posicao:
             flash('preencha a posicao', 'error')
             return redirect(url_for(novo_jogador))
-        tabela_jogador.salvar(nome=nome, numero_camisa=numero_camisa, time_id=time_id,posicao=posicao)
-        jogadores = tabela_jogador.select_todos_jogador()
-        tabela_time.salvar(nome=nome,turma=turma,responsavel=responsavel)
-        times = tabela_time.select_todos_times()
+    jogadores = tabela_jogador.select_todos_jogador()
+    times = tabela_time.select_todos_times()
 
 
     return render_template("jogadores.html", times=times, jogadores=jogadores)
@@ -69,7 +67,6 @@ def listar_times():
 
 @app.route("/times/novo", methods=["GET", "POST"])
 def novo_time():
-
     if request.method == "POST":
         #1 - Pegar os valores digitados no form
         nome = request.form.get("nome", "").strip()
@@ -87,7 +84,7 @@ def novo_time():
                 flash('preencha o responsavel', 'error')
                 return redirect(url_for(novo_time))
         tabela_time.salvar(nome=nome, turma=turma, responsavel=responsavel)
-        times = tabela_jogador.select_todos_times()
+    times = tabela_time.select_todos_times()
 
     return render_template("times.html", times=times)
 
@@ -133,26 +130,9 @@ def nova_partida():
             return redirect(url_for(nova_partida))
 
             # 3 - salvar no banco
-        tabela_partida.salvar()
+    times = tabela_time.select_todos_times()
 
     partidas = tabela_partida.select_todas_partidas()
-
-
-
-
-            # Buscar todos os times no banco
-            # 1- Montar o select
-    times_sql = select(Time)
-
-        # 2- Executar o select
-    times = db_session.execute(times_sql).scalars().all()
-    print(times)
-
-    partidas_sql = select(Partida)
-
-        # 2- Executar o select
-    partidas = db_session.execute(partidas_sql).scalars().all()
-    print(partidas)
 
     return render_template("partidas.html", partidas=partidas, times=times)
 
