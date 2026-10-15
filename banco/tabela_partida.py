@@ -7,34 +7,34 @@ from sqlalchemy.sql.elements import or_
 from database import db_session, Partida, Time
 
 
-def salvar():
+def salvar(time_casa_id, time_visitante_id, gols_casa, gols_visitante, data_partida):
+    try:
+        partida_nova = Partida(time_casa_id=time_casa_id ,time_visitante_id=time_visitante_id ,gols_casa=gols_casa,gols_visitante=gols_visitante ,data_partida=data_partida)
+        db_session.add(partida_nova)
+        db_session.commit()
+        flash('partida cadastrada com sucesso', 'success')
 
-        try:
-            partida_nova = Partida(time_casa_id=time_casa_id ,time_visitante_id=time_visitante_id ,gols_casa=gols_casa,gols_visitante=gols_visitante ,data_partida=data_partida)
-            db_session.add(partida_nova)
-            db_session.commit()
-            flash('partida cadastrada com sucesso', 'success')
 
+    except SQLAlchemyError as e:
+        db_session.rollback()
+        flash('ocorreu um erro,tente novamente', 'error')
+        print(f"Erro: {e}")
+    except Exception as e:
+        db_session.rollback()
+        flash('ocorreu um erro,tente novamente', 'error')
+        print(f"Erro: {e}")
 
-        except SQLAlchemyError as e:
-            db_session.rollback()
-            flash('ocorreu um erro,tente novamente', 'error')
-            print(f"Erro: {e}")
-        except Exception as e:
-            db_session.rollback()
-            flash('ocorreu um erro,tente novamente', 'error')
-            print(f"Erro: {e}")
 def select_todas_partidas():
     TimeCasa = aliased(Time)
     TimeVisitante = aliased(Time)
 
     partidas_sql = (
-        Select(Partida,TimeCasa,TimeVisitante)
+        select(Partida,TimeCasa,TimeVisitante)
         .join(TimeCasa, Partida.time_casa_id == TimeCasa.id)
-        .join(TimeVisitante, Partida.time_visitante_id == TimeVisitante.id))
+        .join(TimeVisitante, Partida.time_visitante_id == TimeVisitante.id)
+    )
 
-
-    partidas_casa = db_session.execute(partidas_sql).scalars().all()
+    partidas_casa = db_session.execute(partidas_sql).all()
 
     return partidas_casa
 
@@ -43,3 +43,19 @@ def select_quantidade_total():
     qtd_total = db_session.execute(partidas_sql).scalar()
     return qtd_total
 print(select_quantidade_total())
+
+
+def select_por_time(id_time):
+    TimeCasa = aliased(Time)
+    TimeVisitante = aliased(Time)
+
+    partidas_sql = (
+        select(Partida, TimeCasa, TimeVisitante)
+        .join(TimeCasa, Partida.time_casa_id == TimeCasa.id)
+        .join(TimeVisitante, Partida.time_visitante_id == TimeVisitante.id)
+        .where(or_(Partida.time_casa_id == id_time, Partida.time_visitante_id == id_time))
+    )
+
+    partidas_casa = db_session.execute(partidas_sql).all()
+
+    return partidas_casa

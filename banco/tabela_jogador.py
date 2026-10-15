@@ -41,3 +41,18 @@ def select_quantidade_total():
     return qtd_total
 print(select_quantidade_total())
 
+def select_um(id_jogador):
+    jogador_sql = (select(Jogador).where(Jogador.id == id_jogador))
+    jogador = db_session.execute(jogador_sql).scalar_one_or_none()
+    return jogador
+print(select_um(1))
+# trazer jogadore de um time
+def select_por_time(time_id):
+    jogador_sql = (select(Jogador).where(time_id == Jogador.time_id))
+    jogador = db_session.execute(jogador_sql).scalars().all()
+    return jogador
+print(select_por_time(1))
+
+
+
+

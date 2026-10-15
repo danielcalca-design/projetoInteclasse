@@ -72,6 +72,7 @@ def novo_time():
         nome = request.form.get("nome", "").strip()
         turma = request.form.get("turma", "").strip()
         responsavel = request.form.get("responsavel", "").strip()
+        jogadores_ids = request.form.getlist("jogadores")
 
         #2 - Verificar se foi digitado
         if not nome:
@@ -83,10 +84,21 @@ def novo_time():
         if not responsavel:
                 flash('preencha o responsavel', 'error')
                 return redirect(url_for(novo_time))
-        tabela_time.salvar(nome=nome, turma=turma, responsavel=responsavel)
-    times = tabela_time.select_todos_times()
+        time = tabela_time.salvar(nome=nome, turma=turma, responsavel=responsavel)
+        if jogadores_ids:
+            for jogador_id in jogadores_ids:
+                jogador = tabela_jogador.select_um(jogador_id)
+                jogador.time_id = time.id
+                db_session.add(jogador)
+                db_session.commit()
 
-    return render_template("times.html", times=times)
+
+
+    times = tabela_time.select_todos_times()
+    jogadores = tabela_jogador.select_todos_jogador()
+
+
+    return render_template("times.html", times=times, jogadores=jogadores)
 
 
 
@@ -94,10 +106,7 @@ def novo_time():
 
 @app.route("/partidas")
 def listar_partidas():
-    partidas_sql = select(Partida)
-
-    # 2- Executar o select
-    partidas = db_session.execute(partidas_sql).scalars().all()
+    partidas = tabela_partida.select_todas_partidas()
     print(partidas)
 
     return render_template("partidas.html", partidas=partidas)
@@ -130,11 +139,26 @@ def nova_partida():
             return redirect(url_for(nova_partida))
 
             # 3 - salvar no banco
+        tabela_partida.salvar(time_casa_id=time_casa_id, time_visitante_id=time_visitante_id, gols_casa=gols_casa, gols_visitante=gols_visitante, data_partida=data_partida)
     times = tabela_time.select_todos_times()
-
     partidas = tabela_partida.select_todas_partidas()
 
     return render_template("partidas.html", partidas=partidas, times=times)
+
+@app.route("/times/<id_time>")
+def detalhes_time(id_time):
+    time = tabela_time.select_um(int(id_time))
+    jogadores = tabela_jogador.select_por_time(int(id_time,))
+    partidas = tabela_partida.select_por_time(int(id_time))
+    return render_template(
+        "time_detalhes.html",
+        time=time,
+        jogadores=jogadores,
+        partidas=partidas,
+        qtd_partidas=len(partidas),
+        qtd_jogadores=len(jogadores)
+    )
+
 
 
 if __name__ == "__main__":

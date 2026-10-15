@@ -82,13 +82,13 @@
                 </tr>
             </thead>
             <tbody>
-            {% for partida_casa,partida_visitante,time_casa,time_visitante in partidas %}
+            {% for partida, time_casa,time_visitante in partidas %}
                 <tr>
                     <td>{{ partida.id }}</td>
                     <td>{{ time_casa.nome}}</td>
-                    <td>{{ time_visitante_nome }}</td>
-                    <td>{{ time.gols_casa }}</td>
-                    <td>{{ time.gols_visitante }}</td>
+                    <td>{{ time_visitante.nome }}</td>
+                    <td>{{ time_casa.gols_casa }}</td>
+                    <td>{{ time_visitante.gols_visitante }}</td>
                     <td>{{ partida.data_partida }}</td>
                 </tr>
             {% endfor %}
